@@ -144,7 +144,7 @@ class _DbInicioScreenState extends State<DbInicioScreen> {
 }
 
 
-enum _Vista { inicio, tabla }
+// enum _Vista { inicio, tabla }
 
 
 class _Encabezado extends StatelessWidget {

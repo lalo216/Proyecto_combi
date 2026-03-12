@@ -81,7 +81,7 @@ class Ruta {
       Color(int.parse(hex.replaceFirst('#', '0xFF')));
 
   static String _colorAHex(Color color) =>
-      '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+      '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
 
   @override
   String toString() => 'Ruta($numero — $nombre)';

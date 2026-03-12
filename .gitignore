@@ -7,3 +7,6 @@ pruebas/pruebas_bases/prueba_bd/pubspec.lock
 pruebas/pruebas_bases/prueba_bd/pubspec.lock
 #Genuinamente no se porque chinga tanto pubspec.lock. Causa inumerables exposiciones de seguridad y se regenera
 #cada que corres flutter pub get o flutter analyze, cosa que _deberias_ hacer de habito.
+aplicacion/combis_app/pubspec.lock
+pruebas/pruebas_mapas/pruebas_generador_rutas/pubspec.lock
+pruebas/pruebas_mapas/pruebas_mapa/pubspec.lock

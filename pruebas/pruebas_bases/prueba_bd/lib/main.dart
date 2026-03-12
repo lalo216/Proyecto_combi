@@ -6,9 +6,7 @@ import 'db_backend.dart';
 // ─── Paleta ───────────────────────────────────────────────────────────────────
 
 const _negro     = Color(0xFF0D0D0D);
-const _superficie = Color(0xFF1A1A1A);
-const _borde     = Color(0xFF2E2E2E);
-const _naranja   = Color(0xFFFF6B2B); // Vibrant Sunset primario
+const _naranja   = Color(0xFFFF6B2B); 
 const _rojo      = Color(0xFFCC2B2B);
 const _textoPrincipal = Color(0xFFEDEDED);
 const _textoApagado   = Color(0xFF666666);
@@ -37,7 +35,6 @@ class CombisApp extends StatelessWidget {
       theme: ThemeData(
         scaffoldBackgroundColor: _negro,
         colorScheme: const ColorScheme.dark(
-          surface: _superficie,
           primary: _naranja,
         ),
       ),
@@ -46,7 +43,6 @@ class CombisApp extends StatelessWidget {
   }
 }
 
-// ─── Pantalla principal ───────────────────────────────────────────────────────
 
 class DbInicioScreen extends StatefulWidget {
   const DbInicioScreen({super.key});
@@ -56,16 +52,12 @@ class DbInicioScreen extends StatefulWidget {
 }
 
 class _DbInicioScreenState extends State<DbInicioScreen> {
-  // Estado de la pantalla
   _Vista _vistaActual = _Vista.inicio;
   bool _cargando = false;
   String? _mensajeEstado;
 
-  // Datos cargados
   int _totalRutas = 0;
   List<Map<String, String>> _rutasVista = [];
-
-  // ─── Acciones ───────────────────────────────────────────────────────────
 
   Future<void> _verBD() async {
     setState(() { _cargando = true; _mensajeEstado = null; });
@@ -120,7 +112,6 @@ class _DbInicioScreenState extends State<DbInicioScreen> {
     _mensajeEstado = null;
   });
 
-  // ─── Build ──────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -155,11 +146,9 @@ class _DbInicioScreenState extends State<DbInicioScreen> {
   }
 }
 
-// ─── Sub-vistas ───────────────────────────────────────────────────────────────
 
-enum _Vista { inicio, tabla }
+// enum _Vista { inicio, tabla }
 
-// ─── Encabezado ───────────────────────────────────────────────────────────────
 
 class _Encabezado extends StatelessWidget {
   final bool mostrarVolver;
@@ -201,13 +190,12 @@ class _Encabezado extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        Container(height: 1, color: _borde),
+        Container(height: 1, color: _naranja),
       ],
     );
   }
 }
 
-// ─── Panel de inicio ──────────────────────────────────────────────────────────
 
 class _PanelInicio extends StatelessWidget {
   final String? mensajeEstado;
@@ -262,8 +250,8 @@ class _PanelInicio extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              border: Border.all(color: _borde),
-              color: _superficie,
+              border: Border.all(color: _rojo),
+              color: _negro,
             ),
             child: Text(
               mensajeEstado!,
@@ -342,7 +330,7 @@ class _PanelTabla extends StatelessWidget {
           cells: const ['#', 'nombre', 'tiempo', 'estado'],
           esEncabezado: true,
         ),
-        Container(height: 1, color: _naranja.withOpacity(0.4)),
+        Container(height: 1, color: _naranja),
         const SizedBox(height: 4),
 
         Expanded(
@@ -359,7 +347,7 @@ class _PanelTabla extends StatelessWidget {
               : ListView.separated(
                   itemCount: rutas.length,
                   separatorBuilder: (_, _) =>
-                      Container(height: 1, color: _borde),
+                      Container(height: 1, color: _negro),
                   itemBuilder: (_, i) {
                     final r = rutas[i];
                     return _FilaTabla(cells: [
@@ -476,7 +464,7 @@ class _BotonAccion extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(color: color, width: peligroso ? 2 : 1),
-          color: peligroso ? color.withOpacity(0.08) : Colors.transparent,
+          color: _negro
         ),
         child: Row(
           children: [
@@ -552,7 +540,7 @@ class _DialogoConfirmacion extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: _superficie,
+      backgroundColor: _naranja,
       shape: const RoundedRectangleBorder(),
       title: Text(
         'Reinstalar BD',

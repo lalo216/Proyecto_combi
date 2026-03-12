@@ -54,7 +54,7 @@ class Ruta {
     return {
       if (id != null) 'id': id,
       'numero': numero,
-      'name': nombre,
+      'nombre': nombre,
       'color': _colorAHex(color),
       'description': descripcion,
       'coordenadas_inicio': _latLngATexto(coordenadasInicio),

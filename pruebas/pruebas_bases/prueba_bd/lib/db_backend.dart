@@ -26,11 +26,8 @@ class InstalaDB {
       path,
       version: 1,
       onCreate: _onCreate,
-      // onUpgrade: _onUpgrade
     );
   }
-
-  // ─── Esquema ──────────────────────────────────────────────────────────────
 
   /// Callback de sqflite. Se ejecuta una sola vez al crear la BD.
   /// No llamar directamente.
@@ -75,8 +72,6 @@ class InstalaDB {
 
   // ─── Mantenimiento ────────────────────────────────────────────────────────
 
-  /// Verifica si las tablas existen; las crea si no.
-  /// Regresa [true] si tuvo que crearlas.
   Future<bool> verificarOCrearEsquema() async {
     final basedatos = await db;
     final resultado = await basedatos.rawQuery(

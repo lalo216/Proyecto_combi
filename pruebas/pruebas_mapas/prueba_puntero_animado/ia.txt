@@ -1,0 +1,162 @@
+Perfecto, Lalo. Para animar un **puntero que recorra toda una ruta** podemos aprovechar el `AnimatedBuilder` o un `Timer.periodic` que vaya actualizando la posición de un marcador sobre la lista de coordenadas de la ruta. Te muestro cómo integrarlo de forma modular:
+
+---
+
+## 📄 lib/route_runner.dart
+Clase que se encarga de mover un puntero sobre una ruta:
+
+```dart
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+
+class RouteRunner {
+  final List<LatLng> routePoints;
+  final Duration stepDuration;
+  int _currentIndex = 0;
+  LatLng? currentPosition;
+  Timer? _timer;
+
+  RouteRunner({required this.routePoints, this.stepDuration = const Duration(seconds: 1)});
+
+  void start(VoidCallback onUpdate) {
+    _currentIndex = 0;
+    currentPosition = routePoints.isNotEmpty ? routePoints.first : null;
+    _timer = Timer.periodic(stepDuration, (timer) {
+      if (_currentIndex < routePoints.length) {
+        currentPosition = routePoints[_currentIndex];
+        _currentIndex++;
+        onUpdate();
+      } else {
+        stop();
+      }
+    });
+  }
+
+  void stop() {
+    _timer?.cancel();
+    _timer = null;
+  }
+}
+```
+
+---
+
+## 📄 lib/map_page.dart
+Integramos el `RouteRunner` para que un puntero recorra la **Ruta Azul**:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'route_model.dart';
+import 'route_runner.dart';
+
+class MapPage extends StatefulWidget {
+  const MapPage({super.key});
+
+  @override
+  State<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  final List<CustomRoute> routes = [
+    CustomRoute(
+      name: "Ruta Azul",
+      color: Colors.blue,
+      stops: [
+        LatLng(19.3139, -98.2400),
+        LatLng(19.3165, -98.2370),
+        LatLng(19.3180, -98.2360),
+        LatLng(19.3400, -98.2000),
+        LatLng(19.3060, -98.2100),
+        LatLng(19.3300, -98.2200),
+        LatLng(19.3200, -98.2500),
+        LatLng(19.2900, -98.2700),
+        LatLng(19.2800, -98.3300),
+        LatLng(19.2800, -98.4400),
+      ],
+    ),
+    // Puedes añadir más rutas aquí...
+  ];
+
+  RouteRunner? runner;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoutes();
+  }
+
+  Future<void> _loadRoutes() async {
+    for (var route in routes) {
+      await route.buildPolyline();
+    }
+    // Inicializamos el puntero en la primera ruta
+    runner = RouteRunner(routePoints: routes.first.polyline);
+    runner!.start(() {
+      setState(() {});
+    });
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Rutas en Tlaxcala")),
+      body: FlutterMap(
+        mapOptions: MapOptions(
+          initialCenter: LatLng(19.3139, -98.2400),
+          initialZoom: 9,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.example.mi_app_web',
+          ),
+          PolylineLayer(
+            polylines: routes
+                .map((r) => Polyline(
+                      points: r.polyline,
+                      strokeWidth: 4,
+                      color: r.color,
+                    ))
+                .toList(),
+          ),
+          MarkerLayer(
+            markers: [
+              // Marcadores de paradas
+              ...routes.expand((r) => r.stops.map((p) => Marker(
+                    point: p,
+                    width: 40,
+                    height: 40,
+                    child: Icon(Icons.location_on, color: r.color),
+                  ))),
+              // Puntero animado
+              if (runner?.currentPosition != null)
+                Marker(
+                  point: runner!.currentPosition!,
+                  width: 50,
+                  height: 50,
+                  child: const Icon(Icons.directions_bus, color: Colors.black),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 🚀 Resultado
+- El mapa muestra tus rutas con paradas.  
+- El **puntero (ícono de bus)** se mueve automáticamente siguiendo la polilínea de la **Ruta Azul**.  
+- Puedes cambiar el ícono (`Icons.directions_car`, `Icons.pedal_bike`, etc.) o el color.  
+- El recorrido avanza cada segundo (`stepDuration`), configurable.  
+
+---
+
+👉 Con esta estructura, puedes reutilizar `RouteRunner` para cualquier ruta que definas en tu lista. ¿Quieres que te prepare también la opción de **pausar/reanudar** el recorrido del puntero?

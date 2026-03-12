@@ -3,15 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'utils/common.dart';
 import 'db_backend.dart';
 
-// ─── Paleta ───────────────────────────────────────────────────────────────────
 
 const _negro     = Color(0xFF0D0D0D);
 const _naranja   = Color(0xFFFF6B2B); 
 const _rojo      = Color(0xFFCC2B2B);
 const _textoPrincipal = Color(0xFFEDEDED);
 const _textoApagado   = Color(0xFF666666);
-
-// ─── Entry point ──────────────────────────────────────────────────────────────
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -147,7 +144,7 @@ class _DbInicioScreenState extends State<DbInicioScreen> {
 }
 
 
-// enum _Vista { inicio, tabla }
+enum _Vista { inicio, tabla }
 
 
 class _Encabezado extends StatelessWidget {

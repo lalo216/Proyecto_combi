@@ -6,15 +6,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final seCreo = await InstalaDB.instance.verificarOCrearEsquema();
-  debugLog(
-    seCreo ? 'BD creada en este arranque' : 'BD ya existía',
-    tag: 'MAIN',
-  );
+  debugLog(seCreo ? 'BD creada en este arranque' : 'BD ya existía', tag: 'MAIN');
 
   runApp(const CombisApp());
 }
 
-class CombisApp extends StatefulWidget {
+class CombisApp extends StatelessWidget {
   const CombisApp({super.key});
 
   @override
@@ -22,13 +19,21 @@ class CombisApp extends StatefulWidget {
     return MaterialApp(
       title: 'Combis App',
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.red,
-          title: const Text('solo backend'),
+      home: const db_frontend(),
+    );
+  }
+}
 
-          body: Container(width: 100, height: 100),
-        ),
+/// Pantalla de inicio temporal para desarrollo de la BD.
+/// Será reemplazada por db_frontend.dart.
+class DbInicioScreen extends StatelessWidget {
+  const DbInicioScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: Text('BD lista — frontend pendiente'),
       ),
     );
   }

@@ -1,4 +1,6 @@
 .vscode/
+.agent/
+.agents/
 *.iml
 *.class
 *.log
@@ -10,3 +12,4 @@ pruebas/pruebas_bases/prueba_bd/pubspec.lock
 aplicacion/combis_app/pubspec.lock
 pruebas/pruebas_mapas/pruebas_generador_rutas/pubspec.lock
 pruebas/pruebas_mapas/pruebas_mapa/pubspec.lock
+pruebas/pruebas_bases/prueba_bd/lib/log/db_logger.dart

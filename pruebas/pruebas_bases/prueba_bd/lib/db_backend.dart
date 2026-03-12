@@ -1,12 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'utils/common.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'log/db_logger.dart';
 
 /// Gestión del archivo SQLite: apertura, esquema y mantenimiento.
-/// No contiene queries de negocio — esas viven en common.dart.
 class InstalaDB {
   static final InstalaDB instance = InstalaDB._instance();
   static Database? _database;
+  
+  static const String _dbName = 'combisapp.db';
+  static const int _dbVersion = 1;
 
   InstalaDB._instance();
 
@@ -15,26 +19,30 @@ class InstalaDB {
     return _database!;
   }
 
-  // ─── Apertura ─────────────────────────────────────────────────────────────
-
   Future<Database> _initDb() async {
-    final ubicacion = await getDatabasesPath();
-    final path = join(ubicacion, 'combisapp.sqlite3');
-    debugLog('Ruta BD: $path', tag: 'DB');
+    String path;
+    if (kIsWeb) {
+      DBLogger.log('Iniciando BD en Web (IndexedDB)');
+      databaseFactory = databaseFactoryFfiWeb;
+      path = _dbName;
+    } else {
+      final ubicacion = await getDatabasesPath();
+      path = join(ubicacion, _dbName);
+      DBLogger.log('Iniciando BD en Local: $path');
+    }
 
     return await openDatabase(
       path,
-      version: 1,
+      version: _dbVersion,
       onCreate: _onCreate,
     );
   }
 
-  /// Callback de sqflite. Se ejecuta una sola vez al crear la BD.
-  /// No llamar directamente.
   Future<void> _onCreate(Database db, int version) async {
-    debugLog('Creando esquema v$version...', tag: 'DB');
+    DBLogger.log('Creando esquema v$version...');
     await _crearTablas(db);
-    debugLog('✓ Esquema listo', tag: 'DB');
+    await _sembrarDatosEjemplo(db);
+    DBLogger.log('✓ Esquema listo y datos sembrados');
   }
 
   /// SQL centralizado. Separado para que [verificarOCrearEsquema] lo reutilice
@@ -42,74 +50,97 @@ class InstalaDB {
   Future<void> _crearTablas(Database db) async {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS rutas (
-        id                 INTEGER PRIMARY KEY AUTOINCREMENT,
-        numero             TEXT    NOT NULL UNIQUE,
-        nombre             TEXT    NOT NULL,
-        color              TEXT    NOT NULL,
-        descripcion        TEXT,
-        coordenadas_inicio TEXT    NOT NULL,
-        coordenadas_fin    TEXT    NOT NULL,
-        tiempo_estimado    INTEGER NOT NULL,
-        activa             INTEGER NOT NULL DEFAULT 1,
-        creada_en          TEXT    NOT NULL,
-        actualizada_en     TEXT    NOT NULL
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        nombre           TEXT    NOT NULL UNIQUE,
+        numero           TEXT    NOT NULL,
+        favoritas        INTEGER NOT NULL DEFAULT 0,
+        paradas          INTEGER NOT NULL DEFAULT 0,
+        tiempo_estimado  INTEGER NOT NULL DEFAULT 0,
+        activa           INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE IF NOT EXISTS paradas (
+      CREATE TABLE IF NOT EXISTS usuarios (
         id             INTEGER PRIMARY KEY AUTOINCREMENT,
-        rutas_id       INTEGER NOT NULL,
         nombre         TEXT    NOT NULL,
-        latitud        REAL    NOT NULL,
-        longitud       REAL    NOT NULL,
-        orden_en_ruta  INTEGER NOT NULL,
-        creada_en      TEXT    NOT NULL,
-        FOREIGN KEY (rutas_id) REFERENCES rutas (id) ON UPDATE CASCADE
+        correo         TEXT    NOT NULL UNIQUE,
+        contrasenna    TEXT    NOT NULL,
+        rol            TEXT    NOT NULL DEFAULT 'usuario'
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS combis (
+        id             INTEGER PRIMARY KEY AUTOINCREMENT,
+        placas         TEXT    NOT NULL UNIQUE,
+        chofer         TEXT    NOT NULL
       )
     ''');
   }
 
-  // ─── Mantenimiento ────────────────────────────────────────────────────────
-
   Future<bool> verificarOCrearEsquema() async {
-    final basedatos = await db;
-    final resultado = await basedatos.rawQuery(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='rutas'",
-    );
-
-    if (resultado.isEmpty) {
-      debugLog('Tablas ausentes — creando...', tag: 'DB');
-      await _crearTablas(basedatos);
-      debugLog('✓ Esquema creado por verificarOCrearEsquema()', tag: 'DB');
-      return true;
-    }
-
-    debugLog('✓ Esquema verificado', tag: 'DB');
-    return false;
-  }
-
-  /// Destruye y recrea todas las tablas. Solo para desarrollo.
-  Future<bool> resetearBD() async {
     try {
       final basedatos = await db;
-      debugLog('Reseteando BD...', tag: 'DB');
-      await basedatos.execute('DROP TABLE IF EXISTS paradas');
-      await basedatos.execute('DROP TABLE IF EXISTS rutas');
-      await _crearTablas(basedatos);
-      debugLog('✓ BD reseteada', tag: 'DB');
-      return true;
+      final resultado = await basedatos.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='rutas'",
+      );
+
+      if (resultado.isEmpty) {
+        DBLogger.log('Tablas ausentes — creando...');
+        await _crearTablas(basedatos);
+        await _sembrarDatosEjemplo(basedatos);
+        return true;
+      }
+      DBLogger.log('✓ Esquema verificado');
+      return false;
     } catch (e, st) {
-      errorLog('Fallo el reset', error: e, stackTrace: st, tag: 'DB');
+      DBLogger.error('Error al verificar esquema', error: e, stackTrace: st);
       return false;
     }
   }
+
+  Future<bool> resetearBD() async {
+    try {
+      final basedatos = await db;
+      DBLogger.log('Reseteando BD...');
+      await basedatos.execute('DROP TABLE IF EXISTS rutas');
+      await basedatos.execute('DROP TABLE IF EXISTS usuarios');
+      await basedatos.execute('DROP TABLE IF EXISTS combis');
+      await _crearTablas(basedatos);
+      await _sembrarDatosEjemplo(basedatos);
+      DBLogger.log('✓ BD reseteada exitosamente');
+      return true;
+    } catch (e, st) {
+      DBLogger.error('Fallo el reset de BD', error: e, stackTrace: st);
+      return false;
+    }
+  }
+
+  Future<void> _sembrarDatosEjemplo(Database db) async {
+    // Insertar rutas de ejemplo
+    await db.execute('''
+      INSERT INTO rutas (nombre, numero, favoritas, paradas, tiempo_estimado, activa)
+      VALUES 
+      ("Centro Directo", "01", 15, 5, 25, 1),
+      ("Circuito Norte", "12", 8, 12, 45, 1)
+    ''');
+    
+    // Insertar un administrador de ejemplo
+    await db.execute('''
+      INSERT INTO usuarios (nombre, correo, contrasenna, rol)
+      VALUES ("Admin Root", "admin@coolbis.com", "root123", "admin")
+    ''');
+
+    DBLogger.log('✓ Datos de ejemplo sembrados con roles y rutas extendidas');
+  }
+
 
   Future<bool> cerrarBD() async {
     if (_database != null) {
       await _database!.close();
       _database = null;
-      debugLog('BD cerrada', tag: 'DB');
+      DBLogger.log('BD cerrada');
       return true;
     }
     return false;

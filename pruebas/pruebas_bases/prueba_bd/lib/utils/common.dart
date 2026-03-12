@@ -1,53 +1,81 @@
 import 'package:flutter/foundation.dart';
+import 'package:sqflite/sqflite.dart';
+import '../db_backend.dart';
+import '../models/ruta.dart';
 
-/// Log de depuración — solo imprime en desarrollo
-void debugLog(String message, {String? tag}) {
-  if (kDebugMode) {
-    final prefix = tag != null ? '[$tag]' : '[CombisApp]';
-    debugPrint('$prefix $message');
-  }
+// ─── Debug ────────────────────────────────────────────────────────────────────
+
+/// Imprime en consola solo en modo debug. No hace nada en release.
+void debugLog(String mensaje, {String tag = 'APP'}) {
+  if (kDebugMode) debugPrint('[$tag] $mensaje');
 }
 
-/// Log de error con error y stack trace opcionales
+/// Igual que [debugLog] pero formatea el error y el stack trace.
 void errorLog(
-  String message, {
-  String? tag,
-  dynamic error,
+  String mensaje, {
+  required Object error,
   StackTrace? stackTrace,
+  String tag = 'APP',
 }) {
   if (kDebugMode) {
-    final prefix = tag != null ? '[$tag]' : '[ERROR]';
-    debugPrint('$prefix $message');
-    if (error != null) debugPrint('  Error: $error');
-    if (stackTrace != null) debugPrint('  Stack: $stackTrace');
+    debugPrint('[$tag] ERROR: $mensaje');
+    debugPrint('[$tag] → $error');
+    if (stackTrace != null) debugPrint('[$tag] $stackTrace');
   }
 }
 
-// ============ FORMATO ============
+// ─── Queries ──────────────────────────────────────────────────────────────────
 
-/// Formatear duración para mostrar (ej. "5 min", "1 hora")
-String formatDuration(int minutes) {
-  if (minutes < 60) {
-    return '$minutes min';
+/// Devuelve cuántas rutas hay en la BD.
+/// Usa COUNT(*) — no carga filas al cliente.
+Future<int> contarRutas() async {
+  try {
+    final basedatos = await InstalaDB.instance.db;
+    final resultado = await basedatos.rawQuery(
+      'SELECT COUNT(*) as total FROM rutas',
+    );
+    return Sqflite.firstIntValue(resultado) ?? 0;
+  } catch (e) {
+    errorLog('Error al contar rutas', error: e, tag: 'DB');
+    return -1;
   }
-  final hours = minutes ~/ 60;
-  final mins = minutes % 60;
-  return mins > 0 ? '$hours h ${mins}m' : '$hours h';
 }
 
-/// Formatear distancia (ej. "1.5 km", "500 m")
-String formatDistance(double km) {
-  if (km < 1) {
-    final meters = (km * 1000).toInt();
-    return '$meters m';
+/// Regresa todas las rutas ordenadas por número.
+Future<List<Ruta>> obtenRutas() async {
+  try {
+    final basedatos = await InstalaDB.instance.db;
+    final filas = await basedatos.query('rutas', orderBy: 'numero ASC');
+    return filas.map(Ruta.fromMap).toList();
+  } catch (e) {
+    errorLog('Error al obtener rutas', error: e, tag: 'DB');
+    return [];
   }
-  return '${km.toStringAsFixed(1)} km';
 }
 
-/// Verificar si un string no está vacío
-bool isNotEmpty(String? value) {
-  return value != null && value.trim().isNotEmpty;
+/// Inserta una ruta. Regresa el ID asignado, o -1 si falló.
+Future<int> insertarRuta(Ruta ruta) async {
+  try {
+    final basedatos = await InstalaDB.instance.db;
+    return await basedatos.insert('rutas', ruta.toMap());
+  } catch (e) {
+    errorLog('Error al insertar ruta', error: e, tag: 'DB');
+    return -1;
+  }
 }
 
-const String databaseName = 'combisapp.db';
-const int databaseVersion = 1;
+/// Actualiza una ruta existente. Regresa filas afectadas (1 si funcionó, 0 si no).
+Future<int> actualizarRuta(Ruta ruta) async {
+  try {
+    final basedatos = await InstalaDB.instance.db;
+    return await basedatos.update(
+      'rutas',
+      ruta.toMap(),
+      where: 'id = ?',
+      whereArgs: [ruta.id],
+    );
+  } catch (e) {
+    errorLog('Error al actualizar ruta', error: e, tag: 'DB');
+    return -1;
+  }
+}

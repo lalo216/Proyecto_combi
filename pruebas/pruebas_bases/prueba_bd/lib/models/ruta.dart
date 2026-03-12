@@ -74,15 +74,12 @@ class Ruta {
     return LatLng(double.parse(partes[0]), double.parse(partes[1]));
   }
 
-  /// LatLng(19.3184, -98.2334) → "19.3184,-98.2334"
   static String _latLngATexto(LatLng coord) =>
       '${coord.latitude},${coord.longitude}';
 
-  /// "#FF5722" → Color(0xFFFF5722)
   static Color _hexAColor(String hex) =>
       Color(int.parse(hex.replaceFirst('#', '0xFF')));
 
-  /// Color(0xFFFF5722) → "#FF5722"
   static String _colorAHex(Color color) =>
       '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
 

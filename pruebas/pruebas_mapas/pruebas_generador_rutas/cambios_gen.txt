@@ -1,0 +1,422 @@
+Perfecto, Lalo. Vamos a integrar el **routing real con calles** usando OSRM en tu código de Flutter. La idea es que en lugar de dibujar líneas rectas entre los puntos, consultemos OSRM para obtener las coordenadas de la ruta real y luego dibujemos esas coordenadas en el mapa.
+
+---
+
+## 📂 Estructura de archivos
+
+```
+mi_app_web/
+├── lib/
+│   ├── main.dart
+│   ├── map_page.dart
+│   └── routing_service.dart
+├── pubspec.yaml
+```
+
+---
+
+## 📄 pubspec.yaml
+
+```yaml
+name: mi_app_web
+description: Demo Flutter Web con rutas en Tlaxcala
+publish_to: 'none'
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.0
+  http: ^1.2.0
+```
+
+---
+
+## 📄 lib/routing_service.dart
+
+Servicio para consultar OSRM y obtener rutas por calles:
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+
+class RoutingService {
+  Future<List<LatLng>> getRoute(LatLng start, LatLng end) async {
+    final url =
+        'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final coords = data['routes'][0]['geometry']['coordinates'] as List;
+      return coords.map((c) => LatLng(c[1], c[0])).toList();
+    } else {
+      throw Exception('Error al obtener ruta');
+    }
+  }
+}
+```
+
+---
+
+## 📄 lib/map_page.dart
+
+Aquí integramos las rutas con OSRM para que sigan las calles:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'routing_service.dart';
+
+class MapPage extends StatefulWidget {
+  const MapPage({super.key});
+
+  @override
+  State<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  List<LatLng> ruta1Polyline = [];
+  List<LatLng> ruta2Polyline = [];
+  List<LatLng> ruta3Polyline = [];
+
+  // Paradas de ejemplo (Tlaxcala)
+  final List<LatLng> ruta1Stops = [
+    LatLng(19.3139, -98.2400),
+    LatLng(19.3165, -98.2370),
+    LatLng(19.3180, -98.2360),
+    LatLng(19.3400, -98.2000),
+    LatLng(19.3060, -98.2100),
+    LatLng(19.3300, -98.2200),
+    LatLng(19.3200, -98.2500),
+    LatLng(19.2900, -98.2700),
+    LatLng(19.2800, -98.3300),
+    LatLng(19.2800, -98.4400),
+  ];
+
+  final List<LatLng> ruta2Stops = [
+    LatLng(19.4167, -98.1833),
+    LatLng(19.4200, -98.1800),
+    LatLng(19.4000, -98.1900),
+    LatLng(19.4300, -98.2000),
+    LatLng(19.5000, -98.1500),
+    LatLng(19.4800, -98.1200),
+    LatLng(19.4600, -98.1000),
+    LatLng(19.4500, -98.0800),
+    LatLng(19.4800, -97.9800),
+    LatLng(19.3167, -97.9167),
+  ];
+
+  final List<LatLng> ruta3Stops = [
+    LatLng(19.3167, -97.9167),
+    LatLng(19.4000, -97.8500),
+    LatLng(19.4000, -97.7500),
+    LatLng(19.3500, -97.7500),
+    LatLng(19.3500, -97.8000),
+    LatLng(19.3500, -98.0500),
+    LatLng(19.3000, -98.0500),
+    LatLng(19.2800, -98.1000),
+    LatLng(19.2500, -98.1500),
+    LatLng(19.2500, -98.2000),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoutes();
+  }
+
+  Future<void> _loadRoutes() async {
+    final service = RoutingService();
+
+    // Ruta 1
+    List<LatLng> fullRoute1 = [];
+    for (int i = 0; i < ruta1Stops.length - 1; i++) {
+      final segment = await service.getRoute(ruta1Stops[i], ruta1Stops[i + 1]);
+      fullRoute1.addAll(segment);
+    }
+
+    // Ruta 2
+    List<LatLng> fullRoute2 = [];
+    for (int i = 0; i < ruta2Stops.length - 1; i++) {
+      final segment = await service.getRoute(ruta2Stops[i], ruta2Stops[i + 1]);
+      fullRoute2.addAll(segment);
+    }
+
+    // Ruta 3
+    List<LatLng> fullRoute3 = [];
+    for (int i = 0; i < ruta3Stops.length - 1; i++) {
+      final segment = await service.getRoute(ruta3Stops[i], ruta3Stops[i + 1]);
+      fullRoute3.addAll(segment);
+    }
+
+    setState(() {
+      ruta1Polyline = fullRoute1;
+      ruta2Polyline = fullRoute2;
+      ruta3Polyline = fullRoute3;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Rutas en Tlaxcala")),
+      body: FlutterMap(
+        mapOptions: MapOptions(
+          initialCenter: LatLng(19.3139, -98.2400),
+          initialZoom: 9,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.example.mi_app_web',
+          ),
+          PolylineLayer(
+            polylines: [
+              Polyline(points: ruta1Polyline, strokeWidth: 4, color: Colors.blue),
+              Polyline(points: ruta2Polyline, strokeWidth: 4, color: Colors.red),
+              Polyline(points: ruta3Polyline, strokeWidth: 4, color: Colors.green),
+            ],
+          ),
+          MarkerLayer(
+            markers: [
+              ...ruta1Stops.map((p) => Marker(
+                point: p,
+                width: 40,
+                height: 40,
+                child: const Icon(Icons.location_on, color: Colors.blue),
+              )),
+              ...ruta2Stops.map((p) => Marker(
+                point: p,
+                width: 40,
+                height: 40,
+                child: const Icon(Icons.location_on, color: Colors.red),
+              )),
+              ...ruta3Stops.map((p) => Marker(
+                point: p,
+                width: 40,
+                height: 40,
+                child: const Icon(Icons.location_on, color: Colors.green),
+              )),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 🚀 Resultado
+- Ahora las rutas **siguen las calles reales** gracias a OSRM.  
+- Cada ruta tiene sus **10 paradas** marcadas con íconos de colores.  
+- Se dibujan tres rutas distintas (azul, roja, verde) dentro de Tlaxcala.  
+
+---
+
+👉 Con este código ya no verás líneas diagonales: las polilíneas se ajustan a las calles.  
+
+¿Quieres que además cada parada muestre un **popup con el nombre del lugar** al hacer clic en el marcador?
+
+
+
+Perfecto, Lalo. Lo que quieres es **abstraer la lógica de generación de rutas** en una clase, para que no tengas que repetir bucles cada vez que agregues una nueva ruta. Te muestro cómo hacerlo:
+
+---
+
+## 📄 lib/routing_service.dart
+Servicio OSRM (igual que antes):
+
+```dart
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+
+class RoutingService {
+  Future<List<LatLng>> getRoute(LatLng start, LatLng end) async {
+    final url =
+        'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson';
+
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final coords = data['routes'][0]['geometry']['coordinates'] as List;
+      return coords.map((c) => LatLng(c[1], c[0])).toList();
+    } else {
+      throw Exception('Error al obtener ruta');
+    }
+  }
+}
+```
+
+---
+
+## 📄 lib/route_model.dart
+Clase que encapsula una ruta con paradas y color:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import 'routing_service.dart';
+
+class CustomRoute {
+  final String name;
+  final Color color;
+  final List<LatLng> stops;
+  List<LatLng> polyline = [];
+
+  CustomRoute({required this.name, required this.color, required this.stops});
+
+  Future<void> buildPolyline() async {
+    final service = RoutingService();
+    List<LatLng> fullRoute = [];
+    for (int i = 0; i < stops.length - 1; i++) {
+      final segment = await service.getRoute(stops[i], stops[i + 1]);
+      fullRoute.addAll(segment);
+    }
+    polyline = fullRoute;
+  }
+}
+```
+
+---
+
+## 📄 lib/map_page.dart
+Ahora usamos la clase `CustomRoute` para simplificar:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'route_model.dart';
+
+class MapPage extends StatefulWidget {
+  const MapPage({super.key});
+
+  @override
+  State<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  final List<CustomRoute> routes = [
+    CustomRoute(
+      name: "Ruta Azul",
+      color: Colors.blue,
+      stops: [
+        LatLng(19.3139, -98.2400),
+        LatLng(19.3165, -98.2370),
+        LatLng(19.3180, -98.2360),
+        LatLng(19.3400, -98.2000),
+        LatLng(19.3060, -98.2100),
+        LatLng(19.3300, -98.2200),
+        LatLng(19.3200, -98.2500),
+        LatLng(19.2900, -98.2700),
+        LatLng(19.2800, -98.3300),
+        LatLng(19.2800, -98.4400),
+      ],
+    ),
+    CustomRoute(
+      name: "Ruta Roja",
+      color: Colors.red,
+      stops: [
+        LatLng(19.4167, -98.1833),
+        LatLng(19.4200, -98.1800),
+        LatLng(19.4000, -98.1900),
+        LatLng(19.4300, -98.2000),
+        LatLng(19.5000, -98.1500),
+        LatLng(19.4800, -98.1200),
+        LatLng(19.4600, -98.1000),
+        LatLng(19.4500, -98.0800),
+        LatLng(19.4800, -97.9800),
+        LatLng(19.3167, -97.9167),
+      ],
+    ),
+    CustomRoute(
+      name: "Ruta Verde",
+      color: Colors.green,
+      stops: [
+        LatLng(19.3167, -97.9167),
+        LatLng(19.4000, -97.8500),
+        LatLng(19.4000, -97.7500),
+        LatLng(19.3500, -97.7500),
+        LatLng(19.3500, -97.8000),
+        LatLng(19.3500, -98.0500),
+        LatLng(19.3000, -98.0500),
+        LatLng(19.2800, -98.1000),
+        LatLng(19.2500, -98.1500),
+        LatLng(19.2500, -98.2000),
+      ],
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAllRoutes();
+  }
+
+  Future<void> _loadAllRoutes() async {
+    for (var route in routes) {
+      await route.buildPolyline();
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Rutas en Tlaxcala")),
+      body: FlutterMap(
+        mapOptions: MapOptions(
+          initialCenter: LatLng(19.3139, -98.2400),
+          initialZoom: 9,
+        ),
+        children: [
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.example.mi_app_web',
+          ),
+          PolylineLayer(
+            polylines: routes
+                .map((r) => Polyline(
+                      points: r.polyline,
+                      strokeWidth: 4,
+                      color: r.color,
+                    ))
+                .toList(),
+          ),
+          MarkerLayer(
+            markers: routes
+                .expand((r) => r.stops.map((p) => Marker(
+                      point: p,
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.location_on, color: r.color),
+                    )))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## 🚀 Ventajas de esta estructura
+- Cada ruta es un objeto `CustomRoute` con nombre, color y paradas.  
+- La lógica de construir la polilínea está encapsulada en la clase.  
+- Para agregar una nueva ruta, solo defines sus paradas y color en la lista `routes`.  
+- El bucle de construcción de rutas se hace una sola vez en `_loadAllRoutes()`.  
+
+---
+
+👉 Con esto tu código queda mucho más limpio y escalable. ¿Quieres que además cada `CustomRoute` tenga un campo opcional con **nombres de las paradas** para mostrarlos en popups al hacer clic en los marcadores?

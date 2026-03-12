@@ -1,33 +1,22 @@
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import '../db_backend.dart';
-import '../models/ruta.dart';
+import '../models/models.dart';
+import '../log/db_logger.dart';
 
-// ─── Debug ────────────────────────────────────────────────────────────────────
-
-/// Imprime en consola solo en modo debug. No hace nada en release.
 void debugLog(String mensaje, {String tag = 'APP'}) {
-  if (kDebugMode) debugPrint('[$tag] $mensaje');
+  DBLogger.log(mensaje, tag: tag);
 }
 
-/// Igual que [debugLog] pero formatea el error y el stack trace.
 void errorLog(
   String mensaje, {
   required Object error,
   StackTrace? stackTrace,
   String tag = 'APP',
 }) {
-  if (kDebugMode) {
-    debugPrint('[$tag] ERROR: $mensaje');
-    debugPrint('[$tag] → $error');
-    if (stackTrace != null) debugPrint('[$tag] $stackTrace');
-  }
+  DBLogger.error(mensaje, error: error, stackTrace: stackTrace, tag: tag);
 }
 
-// ─── Queries ──────────────────────────────────────────────────────────────────
 
-/// Devuelve cuántas rutas hay en la BD.
-/// Usa COUNT(*) — no carga filas al cliente.
 Future<int> contarRutas() async {
   try {
     final basedatos = await InstalaDB.instance.db;
@@ -37,6 +26,19 @@ Future<int> contarRutas() async {
     return Sqflite.firstIntValue(resultado) ?? 0;
   } catch (e) {
     errorLog('Error al contar rutas', error: e, tag: 'DB');
+    return -1;
+  }
+}
+
+/// Cuenta el número de tablas creadas por el usuario en la BD
+Future<int> contarTablas() async {
+  try {
+    final basedatos = await InstalaDB.instance.db;
+    final resultado = await basedatos.rawQuery(
+        "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+    return Sqflite.firstIntValue(resultado) ?? 0;
+  } catch (e) {
+    errorLog('Error al contar tablas', error: e, tag: 'DB');
     return -1;
   }
 }

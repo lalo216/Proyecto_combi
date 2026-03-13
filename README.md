@@ -67,7 +67,7 @@ Actualmente nos encontramos con algo asi:
 ---
 
 ## 📖 Documentación Adicional
- no hay
+ escriban comentarios en sus commits de manera descriptiva perras
 
 ## 👥 Equipo
 

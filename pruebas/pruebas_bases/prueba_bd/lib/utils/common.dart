@@ -1,7 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import '../db_backend.dart';
-import '../models/models.dart';
-import '../log/db_logger.dart';
+import '../models/modelos.dart';
+
+// ─── Debug ────────────────────────────────────────────────────────────────────
 
 void debugLog(String mensaje, {String tag = 'APP'}) {
   DBLogger.log(mensaje, tag: tag);

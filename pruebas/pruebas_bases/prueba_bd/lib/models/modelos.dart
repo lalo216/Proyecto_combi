@@ -1,88 +1,103 @@
-import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
+// Modelos de las entidades
 
-/// Modelo local que representa una ruta de combi.
-/// Refleja directamente la tabla [rutas] en la BD SQLite.
 class Ruta {
   final int? id;
   final String numero;
   final String nombre;
-  final Color color;
-  final String? descripcion;
-  final LatLng coordenadasInicio;
-  final LatLng coordenadasFin;
-  final int tiempoEstimado; // en minutos
-  final bool activa;
-  final DateTime creadaEn;
-  final DateTime actualizadaEn;
+  final int favoritas;
+  final int paradas;
 
   const Ruta({
     this.id,
     required this.numero,
     required this.nombre,
-    required this.color,
-    this.descripcion,
-    required this.coordenadasInicio,
-    required this.coordenadasFin,
-    required this.tiempoEstimado,
-    this.activa = true,
-    required this.creadaEn,
-    required this.actualizadaEn,
+    this.favoritas = 0,
+    this.paradas = 0,
   });
 
-  // ─── Serialización ────────────────────────────────────────────────────────
-
-  /// Convierte una fila de la BD (Map) a un objeto Ruta.
-  factory Ruta.fromMap(Map<String, dynamic> mapa) {
+  factory Ruta.fromMap(Map<String, dynamic> map) {
     return Ruta(
-      id: mapa['id'] as int?,
-      numero: mapa['numero'] as String,
-      nombre: mapa['name'] as String,
-      color: _hexAColor(mapa['color'] as String),
-      descripcion: mapa['description'] as String?,
-      coordenadasInicio: _textoALatLng(mapa['coordenadas_inicio'] as String),
-      coordenadasFin: _textoALatLng(mapa['coordenadas_fin'] as String),
-      tiempoEstimado: mapa['estimated_time'] as int,
-      activa: (mapa['is_active'] as int) == 1,
-      creadaEn: DateTime.parse(mapa['created_at'] as String),
-      actualizadaEn: DateTime.parse(mapa['updated_at'] as String),
+      id: map['id'] as int?,
+      numero: map['numero'] as String? ?? '',
+      nombre: map['nombre'] as String? ?? '',
+      favoritas: map['favoritas'] as int? ?? 0,
+      paradas: map['paradas'] as int? ?? 0,
     );
   }
 
-  /// Convierte el objeto Ruta a un Map listo para insertar en la BD.
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
       'numero': numero,
       'nombre': nombre,
-      'color': _colorAHex(color),
-      'description': descripcion,
-      'coordenadas_inicio': _latLngATexto(coordenadasInicio),
-      'coordenadas_fin': _latLngATexto(coordenadasFin),
-      'estimated_time': tiempoEstimado,
-      'is_active': activa ? 1 : 0,
-      'created_at': creadaEn.toIso8601String(),
-      'updated_at': actualizadaEn.toIso8601String(),
+      'favoritas': favoritas,
+      'paradas': paradas,
     };
   }
+}
 
-  // ─── Helpers de conversión (privados) ─────────────────────────────────────
+class Usuario {
+  final int? id;
+  final String nombre;
+  final String correo;
+  final String contrasenna;
+  final String rol; // 'admin' o 'usuario'
 
-  /// "19.3184,-98.2334" → LatLng(19.3184, -98.2334)
-  static LatLng _textoALatLng(String texto) {
-    final partes = texto.split(',');
-    return LatLng(double.parse(partes[0]), double.parse(partes[1]));
+  const Usuario({
+    this.id,
+    required this.nombre,
+    required this.correo,
+    required this.contrasenna,
+    this.rol = 'usuario',
+  });
+
+  bool get isAdmin => rol == 'admin';
+
+  factory Usuario.fromMap(Map<String, dynamic> map) {
+    return Usuario(
+      id: map['id'] as int?,
+      nombre: map['nombre'] as String? ?? '',
+      correo: map['correo'] as String? ?? '',
+      contrasenna: map['contrasenna'] as String? ?? '',
+      rol: map['rol'] as String? ?? 'usuario',
+    );
   }
 
-  static String _latLngATexto(LatLng coord) =>
-      '${coord.latitude},${coord.longitude}';
+  Map<String, dynamic> toMap() {
+    return {
+      if (id != null) 'id': id,
+      'nombre': nombre,
+      'correo': correo,
+      'contrasenna': contrasenna,
+      'rol': rol,
+    };
+  }
+}
 
-  static Color _hexAColor(String hex) =>
-      Color(int.parse(hex.replaceFirst('#', '0xFF')));
+class Combi {
+  final int? id;
+  final String placas;
+  final String chofer;
 
-  static String _colorAHex(Color color) =>
-      '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+  const Combi({
+    this.id,
+    required this.placas,
+    required this.chofer,
+  });
 
-  @override
-  String toString() => 'Ruta($numero — $nombre)';
+  factory Combi.fromMap(Map<String, dynamic> map) {
+    return Combi(
+      id: map['id'] as int?,
+      placas: map['placas'] as String? ?? '',
+      chofer: map['chofer'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      if (id != null) 'id': id,
+      'placas': placas,
+      'chofer': chofer,
+    };
+  }
 }

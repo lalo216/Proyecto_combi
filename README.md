@@ -68,6 +68,8 @@ Actualmente nos encontramos con algo asi:
 
 ## 📖 Documentación Adicional
  escriban comentarios en sus commits de manera descriptiva perras
+- [Arquitectura (Español)](aplicacion/docs/db_schema.md)
+- [Guía de Inicio (Español)](aplicacion/docs/Entorno_setup.md)
 
 ## 👥 Equipo
 

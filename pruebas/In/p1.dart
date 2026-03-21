@@ -24,7 +24,7 @@ class PantallaConCuatroWidgets extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: GridView.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: 1,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                   children: List.generate(4, (index) {

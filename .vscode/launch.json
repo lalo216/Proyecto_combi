@@ -8,7 +8,7 @@
       "name": "Flutter",
       "type": "dart",
       "request": "launch",
-      "program": "${workspaceFolder}/pruebas/In/p1.dart"
+      "program": "${workspaceFolder:Proyecto_combi}/pruebas/In/p1.dart"
     }
   ]
 }

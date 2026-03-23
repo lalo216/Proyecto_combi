@@ -1,0 +1,30 @@
+name: tlaxcala_routes
+description: Aplicación Flutter para mostrar rutas y paradas desde MySQL vía API PHP
+publish_to: 'none' # No publicar en pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Mapa interactivo
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.0
+
+  # HTTP para consumir la API en PHP
+  http: ^1.2.0
+
+  # Material design (colores, widgets)
+  flutter_material_color_picker: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

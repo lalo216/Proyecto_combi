@@ -5,9 +5,7 @@
 
 ## 1.- Proposito de este documento
 
-Porque me conozco, siento que si no me detengo a mencionar el rumbo que he encontrado para la arquitectura de la db ahora, me distraere. Asi que haganse cuenta que he estado leyendo muchisimo sobre los principios
-que la mayoria de aplicaciones implican para entregar contenido a tanta gente a la vez, no solo el esquema de sus dbs, sino una reconstrucción interna sobre lo que considero ser una ¨aplicacion¨ y ha sido facinante ampliar
-mi idea de lo que se requiere para nuestro projecto si realisticamente queremos llegar a una tienda de aplicaciones. Vamos a requerir construir una API, ademas de definir los servicios y limites del sistema en cargo de manejar cambios de
+Vamos a requerir construir una API, ademas de definir los servicios y limites del sistema en cargo de manejar cambios de
 información relacionados con 1) Lo especial de la app como rutas/paradas/dibujar en el mapa y 2) Los usuarios, sus preferencias u otra información sensible. 
 
 ---
@@ -16,30 +14,7 @@ información relacionados con 1) Lo especial de la app como rutas/paradas/dibuja
 
 Propongo la siguiente arquitectura a alto nivel:
 
-Flutter app ---- HTTPS (tailscale guardia) ----> mechyserver.taile37db1.ts.net/combiapi/*
-
-mechyserver.taile37db1.ts.net/combiapi/*
-        │
-        ▼
-┌─ Caddy (Docker, rootless) ──────────────────────────────┐
-│  handle_path /combiapi/*                                 │
-│  → reverse_proxy 192.168.1.120:3200   (Apache)            │ ----> Apache2:3200 en /var/www/html/combiapi/
-│  TLS terminated by Tailscale / MagicDNS                  │                                             │
-                                                           |                                             |        
-└──────────────────────────────────────────────────────────┘                                             |
-                |                         |                                                              | check.php          → health + DB reachability       
-                |                         |                                                              ├── common/         → CRUD y otras funciones comunes  
-                |                         |                                                              ├── v1/auth/           → user auth endpoints (?)   
-                │                         │
-                ▼                         ▼
-┌─ SQLite ──────────────┐  ┌─ MySQL 8.0 ───────────────────┐
-│ /var/www/html/combiapi│  │ combis_db                      │
-│ /db/combis_cache.db   │  │ ├──   
-│ ├── rutas             │  │ ├─  
-│ ├── paradas           │  │ └── usuarios (auth, V2+)       │
-│ Public transport data │  │ Sensitive/auth data only       │
-│ Cacheable, read-heavy │  │ Never cached client-side       │
-└───────────────────────┘  └────────────────────────────────┘
+vista en -[arquitectura](aplicacion/docs/ARCHITECTURE.md)
 
 ## La lógica 
 **SQLite** Mantiene información que podemos brindar al usuario sin pedir autenticidad, excelente para cachear y leer, podemos ¨enviar" un snapshot de esta bd de respaldo para uso _offline_. Info personal identificable _no_ vive aqui, por lo que deberiamos poder incluso eliminarla y resemblar sin perdida significativa ni lentitud perceptible por el usuario.
@@ -48,9 +23,7 @@ mechyserver.taile37db1.ts.net/combiapi/*
 
 ## El gol
 
-La primer version de esta arquitectura debera probar que la app puede comunicarse con el servidor desde un emulador con waydroid, ademas debe implementar lo que ya tenemos en respeto a poder demostrar un mapa y dibujar en cima de el. Para este demo, tendremos como gol instalar las dbs y rescatar principalmente de la local para dibujar las rutas a base de que el programa toma el punto final de una ruta y dibuja hacia "atras" tocando cada parada asociada en orden hasta llegar al punto de inicio de la ruta.
-
-Tener "version 1" de esto implementado para que lo puedan aprender e ir mejorando es crucial.
+La primer version de esta arquitectura debera probar que la app puede comunicarse con el servidor desde un emulador con waydroid, ademas debe implementar lo que ya tenemos en respeto a poder demostrar un mapa y dibujar encima de el. Para este demo, tendremos como gol instalar las dbs y rescatar principalmente de la local para dibujar las rutas a base de que el programa toma el punto final de una ruta y dibuja hacia "atras" tocando cada parada asociada en orden hasta llegar al punto de inicio de la ruta.
 
 ## Requisitos
 
@@ -78,7 +51,7 @@ sync.php
 **Paritad y sincronizacion**
 
 En general es dificil crear una buena app con un CRUD que no cause problemas entre los desarrolladores y usuarios, dessarrolladores y ellos mismos, etc. Para anticiparlo
-estaremos introduciendo el restringio de diseño más importante para nuestra app multi-usuario. multi-version, _seguridad en syncronizidad_
+estaremos introduciendo el restringio de diseño más importante para nuestra app multi-usuario, multi-version, _seguridad en syncronizidad_
 
 **La regla:** La app nunca modifica información de ida relacionada con la db. Solamente lee del cache local, el servidor empuja data nueva a la app mediante otro endpoint (sync endpoitn). La app debe solo acceptar un sync si:
 
@@ -87,7 +60,7 @@ estaremos introduciendo el restringio de diseño más importante para nuestra ap
 
 1.-Es cumplido por el endpoint de rutas (actualmente) cual incluye un "schema_version" en la metadata de su respuesta. Un mismatch inicia resincronizacion, Una actualizacion parcial (admin agrega una parada) actualiza la version, solo cuando este en el foreground, no en pleno uso de su sessión maso.
 
-### Flujos
+### Flujo posible
 
 1. Con primer instalacion, la app siembra su db local usando SeedData.dart (data de starter)
 2. Cuando la app obtiene una connecion exitocsa, llama el futuro endpoint en rutas.php para comparar versiones de la db.

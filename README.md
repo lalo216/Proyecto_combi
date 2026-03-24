@@ -38,10 +38,15 @@ El último hace que tu app siempre este en localhost:3520
 
 ##  Stack Tecnológico - Para nada final.
 
-- **Framework:** [Flutter](https://flutter.dev) (UI)
-- **Mapas:** [flutter_map](https://pub.dev/packages/flutter_map) + OpenStreetMap
-- **Tipografía:** [Google Fonts](https://pub.dev/packages/google_fonts) (Inter)
-- **Persistencia:** SQLite vía `sqflite` (Actualmente en preparación para reintegración)
+| Capa | Tecnología |
+|------|-----------|
+| UI | Flutter + Material 3 |
+| Mapas | flutter_map + OpenStreetMap |
+| Tipografía | Google Fonts (Inter + Source Code Pro) |
+| BD local | SQLite vía sqflite / sqflite_common_ffi |
+| API | HTTP → mechyserver (Tailscale) |
+| Servidor | Apache2 + PHP en Docker (Caddy proxy) |
+| BD remota | SQLite público + MySQL sensible |
 
 ---
 
@@ -73,4 +78,12 @@ Actualmente nos encontramos con algo asi:
 
 ## 👥 Equipo
 
-Si tienes dudas sobre la implementación de los mapas o la lógica de las rutas, consulta los comentarios en el código (todos traducidos al español para mejor soporte del equipo).
+Si tienes dudas sobre la implementación de los mapas o la lógica de las rutas, consulta los comentarios en el código.
+
+_Recomendaciones_
+
+- Pull al inicio de cada sesión, push frecuente
+- Commits descriptivos en español
+- No renumerar IDs de rutas/paradas sin migración
+- Si una ruta está en desarrollo → `activo = 0`, no eliminar
+- Cambios al esquema SQLite → incrementar `dbVersion` en `DbHelper`

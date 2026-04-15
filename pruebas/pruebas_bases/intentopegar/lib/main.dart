@@ -1,24 +1,52 @@
 import 'package:flutter/material.dart';
-import 'pages/init_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home_page.dart';
 import 'pages/routes_page.dart';
 import 'pages/profile_page.dart';
 import 'config/app_config.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const CombisApp());
+  final prefs = await SharedPreferences.getInstance();
+  final isDark = prefs.getBool('dark_mode') ?? true;
+  runApp(CombisApp(initialDark: isDark));
 }
 
-class CombisApp extends StatelessWidget {
-  const CombisApp({super.key});
+class CombisApp extends StatefulWidget {
+  final bool initialDark;
+  const CombisApp({super.key, required this.initialDark});
+
+  @override
+  State<CombisApp> createState() => _CombisAppState();
+}
+
+class _CombisAppState extends State<CombisApp> {
+  late bool _dark;
+
+  @override
+  void initState() {
+    super.initState();
+    _dark = widget.initialDark;
+  }
+
+  Future<void> _toggleTheme() async {
+    setState(() => _dark = !_dark);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('dark_mode', _dark);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
+      themeMode: _dark ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF6D00)),
+        appBarTheme: const AppBarTheme(elevation: 0),
+      ),
+      darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF121212),
         colorScheme: ColorScheme.fromSeed(
@@ -36,36 +64,16 @@ class CombisApp extends StatelessWidget {
           unselectedItemColor: Colors.white54,
         ),
       ),
-      home: const _AppShell(),
+      home: _MainNavigation(onToggleTheme: _toggleTheme, isDark: _dark),
     );
   }
 }
 
-/// Shell de la app: muestra InitPage primero, luego la app principal.
-class _AppShell extends StatefulWidget {
-  const _AppShell();
-
-  @override
-  State<_AppShell> createState() => _AppShellState();
-}
-
-class _AppShellState extends State<_AppShell> {
-  bool _initCompleto = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!_initCompleto) {
-      return InitPage(
-        onContinuar: () => setState(() => _initCompleto = true),
-      );
-    }
-    return const _MainNavigation();
-  }
-}
-
-/// Navegación principal con BottomNavigationBar.
 class _MainNavigation extends StatefulWidget {
-  const _MainNavigation();
+  final VoidCallback onToggleTheme;
+  final bool isDark;
+
+  const _MainNavigation({required this.onToggleTheme, required this.isDark});
 
   @override
   State<_MainNavigation> createState() => _MainNavigationState();
@@ -85,6 +93,13 @@ class _MainNavigationState extends State<_MainNavigation> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${AppConfig.appName} v${AppConfig.appVersion}'),
+        actions: [
+          IconButton(
+            icon: Icon(widget.isDark ? Icons.light_mode : Icons.dark_mode),
+            onPressed: widget.onToggleTheme,
+            tooltip: widget.isDark ? 'Modo claro' : 'Modo oscuro',
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,

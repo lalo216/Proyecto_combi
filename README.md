@@ -6,8 +6,11 @@
 App móvil (Android) que muestra rutas de combis en un mapa OpenStreetMap. El usuario selecciona dónde está, ve qué combis pasan cerca y consulta el recorrido completo de cada ruta.
 
 **Plataforma objetivo:** Android (APK sideload).  
+
 **Desarrollo:** Linux desktop + Windows (VS Code mas paquete de extensiones c++), emulador Waydroid o dispositivo físico. Flutter SDK y git. 
+
 **Stack servidor:** PHP 8.3 + MySQL 8.0 sobre Caddy, accesible vía Tailscale.
+
 ---
 
 ## Arquitectura general

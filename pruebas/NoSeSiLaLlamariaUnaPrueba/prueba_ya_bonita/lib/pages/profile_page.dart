@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../state/app_state.dart';
+import 'admin_page.dart';
 
 enum _Modo { login, registro }
 
@@ -119,6 +120,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 avatar: const Icon(Icons.verified_user_outlined, size: 16),
               ),
               const SizedBox(height: 48),
+              if (estado.userRole == 'admin')
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AdminPage()),
+                    ),
+                    icon: const Icon(Icons.admin_panel_settings),
+                    label: const Text('Panel de administración'),
+                  ),
+                ),
               OutlinedButton.icon(
                 onPressed: _cerrarSesion,
                 icon: const Icon(Icons.logout),

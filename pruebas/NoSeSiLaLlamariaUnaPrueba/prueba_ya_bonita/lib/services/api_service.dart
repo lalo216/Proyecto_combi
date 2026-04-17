@@ -17,6 +17,15 @@ class OfflineException implements Exception {
   String toString() => 'OfflineException: sin conexión con el servidor';
 }
 
+// 401/403 del servidor — token inválido o expirado.
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+  const ApiException(this.statusCode, this.message);
+  @override
+  String toString() => 'ApiException $statusCode: $message';
+}
+
 class ApiService {
   static const String _base =
       'https://mechyserver.taile37db1.ts.net/combiapi';
@@ -35,6 +44,8 @@ class ApiService {
     } on TimeoutException {
       throw const OfflineException();
     } on FormatException {
+      throw const OfflineException();
+    } catch (_) {
       throw const OfflineException();
     }
   }
@@ -69,6 +80,81 @@ class ApiService {
       throw const OfflineException();
     } on FormatException {
       throw const OfflineException();
+    } catch (_) {
+      throw const OfflineException();
+    }
+  }
+
+  // --- Favoritos (requieren token JWT) ---
+
+  /// Devuelve los IDs de rutas favoritas del usuario.
+  /// Lanza [ApiException] si el token es inválido (401).
+  Future<List<int>> getFavorites(String token) async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_base/favorites.php'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(_timeout);
+      if (response.statusCode == 401) {
+        throw const ApiException(401, 'Sesión expirada');
+      }
+      if (response.statusCode != 200) throw const OfflineException();
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final ids = (body['favorites'] as List<dynamic>).map((e) => e as int).toList();
+      return ids;
+    } on ApiException {
+      rethrow;
+    } on SocketException {
+      throw const OfflineException();
+    } on TimeoutException {
+      throw const OfflineException();
+    } on FormatException {
+      throw const OfflineException();
+    }
+  }
+
+  /// Agrega una ruta a favoritos. No falla si ya existe (INSERT IGNORE).
+  Future<void> addFavorite(String token, int routeId) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('$_base/favorites.php'),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'route_id': routeId}),
+          )
+          .timeout(_timeout);
+      if (response.statusCode == 401) throw const ApiException(401, 'Sesión expirada');
+      if (response.statusCode != 201) throw const OfflineException();
+    } on ApiException {
+      rethrow;
+    } on SocketException {
+      throw const OfflineException();
+    } on TimeoutException {
+      throw const OfflineException();
+    }
+  }
+
+  /// Quita una ruta de favoritos.
+  Future<void> removeFavorite(String token, int routeId) async {
+    try {
+      final request = http.Request('DELETE', Uri.parse('$_base/favorites.php'))
+        ..headers['Authorization'] = 'Bearer $token'
+        ..headers['Content-Type'] = 'application/json'
+        ..body = jsonEncode({'route_id': routeId});
+      final streamed = await request.send().timeout(_timeout);
+      if (streamed.statusCode == 401) throw const ApiException(401, 'Sesión expirada');
+      if (streamed.statusCode != 200) throw const OfflineException();
+    } on ApiException {
+      rethrow;
+    } on SocketException {
+      throw const OfflineException();
+    } on TimeoutException {
+      throw const OfflineException();
     }
   }
 
@@ -98,6 +184,8 @@ class ApiService {
     } on TimeoutException {
       throw const OfflineException();
     } on FormatException {
+      throw const OfflineException();
+    } catch (_) {
       throw const OfflineException();
     }
   }

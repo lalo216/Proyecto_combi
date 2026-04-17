@@ -46,7 +46,7 @@ class AuthService {
     } on TimeoutException {
       throw const AuthException('El servidor tardó demasiado');
     } on FormatException {
-      throw const AuthException('Respuesta inválida del servidor');
+      throw const AuthException('Respuesta inválida del servidor, checa locales?');
     }
   }
 
@@ -71,8 +71,6 @@ class AuthService {
 
       final token = (body['data'] as Map<String, dynamic>)['token'] as String;
       await _storage.write(key: _tokenKey, value: token);
-
-      // (la verificación ocurre en el servidor en cada request protegido)
       final claims = _decodePayload(token);
       return {
         'token': token,
@@ -95,9 +93,6 @@ class AuthService {
     await _storage.delete(key: _tokenKey);
   }
 
-  // --- Restaurar sesión al arrancar la app ---
-  // Devuelve los datos del usuario si hay un token válido y no expirado.
-  // Devuelve null si no hay sesión o el token expiró (y lo borra).
   Future<Map<String, String>?> restoreSession() async {
     final token = await _storage.read(key: _tokenKey);
     if (token == null) return null;

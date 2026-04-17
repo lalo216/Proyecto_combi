@@ -6,6 +6,8 @@
 //   3. Si offline y BD vacía → siembra con SeedData como fallback
 //   4. Navega a HomePage (reemplaza esta pantalla — no queda en el back-stack)
 
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/seed_data.dart';
@@ -63,13 +65,11 @@ class _BootPageState extends State<BootPage> {
       _setStatus('Sin conexión — usando datos locales.');
       if (currentVersion == 0) await SeedData.sembrar();
     } catch (e) {
-      // Error inesperado: si la BD está vacía, al menos sembramos el fallback
       _setStatus('Error de red — usando datos locales.');
       if (currentVersion == 0) await SeedData.sembrar();
     }
-
-    // Restaurar sesión guardada si el usuario ya había iniciado sesión antes
-    final session = await AuthService().restoreSession();
+    final auth = AuthService();
+    final session = await auth.restoreSession();
     if (session != null && mounted) {
       context.read<AppState>().setUser(
         loggedIn: true,
@@ -77,6 +77,7 @@ class _BootPageState extends State<BootPage> {
         role: session['role'],
         id: session['id'],
       );
+      unawaited(context.read<AppState>().loadFavorites(_api, auth));
     }
 
     if (!mounted) return;

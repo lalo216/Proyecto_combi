@@ -17,7 +17,7 @@ class RouteRepository {
     return _db.getRutas();
   }
 
-  /// Devuelve todas las paradas de SQLite (todas las rutas).
+  /// Devuelve todas las paradas de SQLite.
   Future<List<Parada>> getAllParadas() async {
     return _db.getAllParadas();
   }
@@ -27,7 +27,8 @@ class RouteRepository {
     return _db.getParadas(routeId);
   }
 
-  /// Silencia [OfflineException] — sin conexión no es un error en offline-first.
+  /// Silencia cualquier error de sync — sin conexión no es un error en offline-first.
+  /// Lee del caché local (SQLite) sin depender del servidor.
   Future<void> _trySyncSilently() async {
     try {
       final version = await _db.getSchemaVersion();
@@ -41,6 +42,8 @@ class RouteRepository {
       }
     } on OfflineException {
       // Sin conexión — SQLite es suficiente
+    } catch (_) {
+      // Otros errores (timeout, JSON corrupto, servidor degradado) — continuar offline
     }
   }
 }

@@ -4,10 +4,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import '../models/parada.dart';
 import '../models/ruta.dart';
 import '../repositories/route_repository.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../state/app_state.dart';
 import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,11 +23,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _repo = RouteRepository();
   final _api = ApiService();
+  final _auth = AuthService();
 
   List<Ruta> _rutas = [];
   List<Parada> _paradas = [];
   Ruta? _selectedRuta;
-  String _healthStatus = 'checking';
+  String _healthStatus = 'Probando';
   bool _loading = true;
   int _navIndex = 0;
 
@@ -55,7 +59,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Convierte '#FF6D00' → Color
+  // Hex → Color
   Color _hexColor(String hex) {
     final clean = hex.replaceFirst('#', '');
     return Color(int.parse('FF$clean', radix: 16));
@@ -160,10 +164,8 @@ class _HomePageState extends State<HomePage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Centro aproximado de Chiautempan
-    const center = LatLng(19.3060, -98.1870);
-
-    // Polilíneas — cada ruta con su color; la seleccionada se resalta
+    // Centro aproximado de Chiautempan, nombre de variable indica que luego sera remplazado con una aproximación de la dirección actual del usuarió, tomando en cuenta las combis que aparecen dentro de una circunferencia >20 metros.
+    const spawncenter = LatLng(19.3060, -98.1870);
     final polylines = <Polyline>[];
     for (final ruta in _rutas) {
       final stops = _paradas
@@ -216,7 +218,7 @@ class _HomePageState extends State<HomePage> {
 
     return FlutterMap(
       options: const MapOptions(
-        initialCenter: center,
+        initialCenter: spawncenter,
         initialZoom: 14.5,
         maxZoom: 18,
         minZoom: 10,
@@ -227,7 +229,7 @@ class _HomePageState extends State<HomePage> {
           userAgentPackageName: 'mx.combis.combischiautempanrun',
           tileProvider: NetworkTileProvider(
             headers: {
-              'User-Agent': 'CombisChiautempan/0.1 (gooseymech@proton.me)',
+              'User-Agent': 'CombisChiautempan/0.1',
             },
           ),
         ),
@@ -313,6 +315,7 @@ class _HomePageState extends State<HomePage> {
     final isSelected = _selectedRuta?.id == ruta.id;
     final color = _hexColor(ruta.color);
     final stopCount = _paradas.where((p) => p.routeId == ruta.id).length;
+    final appState = context.watch<AppState>();
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -367,7 +370,21 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              if (isSelected)
+              // Estrella de favorito — solo visible si hay sesión iniciada
+              if (appState.isLoggedIn)
+                IconButton(
+                  icon: Icon(
+                    appState.isFavorite(ruta.id)
+                        ? Icons.star_rounded
+                        : Icons.star_border_rounded,
+                    color: appState.isFavorite(ruta.id)
+                        ? Colors.amber
+                        : Colors.grey[400],
+                  ),
+                  onPressed: () =>
+                      appState.toggleFavorite(_api, _auth, ruta.id),
+                )
+              else if (isSelected)
                 Icon(Icons.check_circle_rounded, color: color, size: 22)
               else
                 Icon(Icons.chevron_right, color: Colors.grey[400]),

@@ -1,5 +1,0 @@
-package com.example.prueba_ruta_bd
-
-import io.flutter.embedding.android.FlutterActivity
-
-class MainActivity : FlutterActivity()

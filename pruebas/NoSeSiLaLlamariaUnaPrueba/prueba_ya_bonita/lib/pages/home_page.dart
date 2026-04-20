@@ -12,6 +12,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../state/app_state.dart';
 import 'profile_page.dart';
+import 'route_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -76,6 +77,7 @@ class _HomePageState extends State<HomePage> {
         index: _navIndex,
         children: [
           _buildMapTab(),
+          RouteDetailPage(selectedRoute: _selectedRuta),
           const ProfilePage(),
         ],
       ),
@@ -87,6 +89,11 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.map_outlined),
             selectedIcon: Icon(Icons.map),
             label: 'Mapa',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.route_outlined),
+            selectedIcon: Icon(Icons.route),
+            label: 'Detalles',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -287,7 +294,10 @@ class _HomePageState extends State<HomePage> {
                 if (_selectedRuta != null) ...[
                   const Spacer(),
                   TextButton(
-                    onPressed: () => setState(() => _selectedRuta = null),
+                    onPressed: () => setState(() {
+                      _selectedRuta = null;
+                      _navIndex = 0;
+                    }),
                     child: const Text('Ver todas'),
                   ),
                 ],
@@ -323,8 +333,17 @@ class _HomePageState extends State<HomePage> {
       elevation: isSelected ? 4 : 1,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () =>
-            setState(() => _selectedRuta = isSelected ? null : ruta),
+        onTap: () {
+          setState(() {
+            if (isSelected) {
+              _selectedRuta = null;
+              _navIndex = 0;
+            } else {
+              _selectedRuta = ruta;
+              _navIndex = 1;
+            }
+          });
+        },
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(

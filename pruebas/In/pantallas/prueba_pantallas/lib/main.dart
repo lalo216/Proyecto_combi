@@ -50,10 +50,22 @@ class PantallaConCuatroWidgets extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: const [
-              IconButton(icon: Icon(Icons.home), onPressed: null),
-              IconButton(icon: Icon(Icons.search), onPressed: null),
-              IconButton(icon: Icon(Icons.notifications), onPressed: null),
-              IconButton(icon: Icon(Icons.person), onPressed: null),
+              IconButton(icon: Icon(Icons.home), onPressed: null, iconSize: 60),
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: null,
+                iconSize: 60,
+              ),
+              IconButton(
+                icon: Icon(Icons.notifications),
+                onPressed: null,
+                iconSize: 60,
+              ),
+              IconButton(
+                icon: Icon(Icons.person),
+                onPressed: null,
+                iconSize: 60,
+              ),
             ],
           ),
         ),

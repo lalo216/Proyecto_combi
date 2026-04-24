@@ -15,42 +15,29 @@ class MainApp extends StatelessWidget {
         body: Center(
           //contenedor principal
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               Container(
-                width: 150,
-                height: 150,
+                width: 400,
+                height: 100,
+                decoration: BoxDecoration(color: Colors.green),
+                child: Text("verde"),
+              ),
 
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.all(15),
+              Container(
+                width: 400,
+                height: 100,
                 decoration: BoxDecoration(color: Colors.blue),
-                child: Text("Eduardo"),
+                child: Text("azul"),
               ),
 
               Container(
-                width: 20,
-                height: 300,
-
-                alignment: Alignment.bottomRight,
-                margin: EdgeInsets.all(15),
+                width: 400,
+                height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.red,
-                  border: Border.all(color: Colors.yellow),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Color.fromARGB(255, 255, 0, 157),
                 ),
-                child: Text("Beristain"),
-              ),
-
-              Container(
-                width: 200,
-                height: 200,
-
-                alignment: Alignment.center,
-                padding: EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text("Ortiz"),
+                child: Text("fucsia"),
               ),
             ],
           ),

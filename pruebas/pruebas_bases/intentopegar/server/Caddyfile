@@ -1,0 +1,13 @@
+# Caddyfile — Referencia para reverse proxy
+# Copiar a /etc/caddy/Caddyfile en el servidor
+#
+# Caddy escucha en el dominio de Tailscale y reenvía
+# requests /combiapi/* a Apache2 en localhost:80
+
+mechyserver.taile.ts.net {
+    handle_path /combiapi/* {
+        reverse_proxy localhost:80 {
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+}

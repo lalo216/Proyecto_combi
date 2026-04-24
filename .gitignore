@@ -1,5 +1,6 @@
 .vscode/
 .agent/
+.claude/
 .agents/
 *.iml
 *.class

@@ -1,0 +1,51 @@
+<!--
+  TEMPLATE: AndroidManifest.xml para builds RELEASE (producción).
+  Destino: android/app/src/main/AndroidManifest.xml
+  App: CombisChiautempan (mx.combis.combischiautempanrun)
+
+  CRÍTICO — no olvidar:
+  - <uses-permission INTERNET/> → sin esto la app queda 100% offline (rompe sync.php, login, tiles OSM).
+  - android:label debe ser "CombisChiautempan" (NO "combischiautempanrun").
+  - android:name=".MainActivity" se resuelve contra el `namespace` de build.gradle.kts.
+  - El archivo MainActivity.kt debe existir en: android/app/src/main/kotlin/mx/combis/combischiautempanrun/
+  - NO incluir android:usesCleartextTraffic="true" en release — todo tráfico debe ir por HTTPS (Tailscale lane).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Requerido para: sync.php, check.php, routes.php, favorites.php, login.php, tiles OSM -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application
+        android:label="CombisChiautempan"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

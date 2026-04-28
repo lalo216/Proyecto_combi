@@ -25,7 +25,7 @@ class _RoutesListState extends State<RoutesList> {
   Future<void> fetchRutas() async {
     try {
       final response = await http.get(
-        Uri.parse("http://localhost/beta/rutas.php"),
+        Uri.parse("http://172.20.10.8/beta/rutas.php"),
       );
       if (response.statusCode == 200) {
         setState(() {

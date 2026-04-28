@@ -8,7 +8,7 @@ class Tarjetas extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       // contenedor con altura fija y scroll, se utilza porque singlechildscrollview no funciona con listview.builder y no tiene una propiedad fija para limitar su altura, rompiedno asi la creacion de objetos
-      height: 500, // altura fija para el contenedor
+      height: 900, // altura fija para el contenedor
 
       child: Stack(
         //encapsular los widget dentro de un stack para colocar el degradado encima de los widget y que no se vea afectado por el scroll
@@ -22,7 +22,7 @@ class Tarjetas extends StatelessWidget {
                 ),
 
                 // Primer contenedor con tarjetas+
-                RutasContainer(apiUrl: 'http://localhost/beta/rutas.php'),
+                RutasContainer(apiUrl: 'http://172.20.10.8/beta/rutas.php'),
 
                 Text(
                   "Rutas recomendadas",
@@ -30,7 +30,7 @@ class Tarjetas extends StatelessWidget {
                 ),
 
                 // Segundo contenedor con otras tarjetas o widgets
-                RutasContainer(apiUrl: 'http://localhost/beta/rutas.php'),
+                RutasContainer(apiUrl: 'http://172.20.10.8/beta/rutas.php'),
               ],
             ),
           ),

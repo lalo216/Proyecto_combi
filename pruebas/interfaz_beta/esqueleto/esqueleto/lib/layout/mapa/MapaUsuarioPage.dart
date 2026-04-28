@@ -21,19 +21,38 @@ class _MapaUsuarioPageState extends State<MapaUsuarioPage> {
 
   Future<void> obtenerUbicacion() async {
     try {
-      // En web, el navegador pide permiso automáticamente si estás en localhost o HTTPS
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception("El servicio de ubicación está desactivado");
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception("Permiso de ubicación denegado");
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception("Permiso de ubicación denegado permanentemente");
+      }
+
       Position pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+
       if (!mounted) return;
       setState(() {
         userLocation = LatLng(pos.latitude, pos.longitude);
       });
     } catch (e) {
-      // Fallback si falla la ubicación
       if (!mounted) return;
       setState(() {
-        userLocation = LatLng(19.3186, -98.1999); // Ejemplo: Chiautempan
+        userLocation = LatLng(
+          19.302775433615377,
+          -98.24389391794547,
+        ); // Fallback: Chiautempan
       });
     }
   }
@@ -52,7 +71,8 @@ class _MapaUsuarioPageState extends State<MapaUsuarioPage> {
               children: [
                 TileLayer(
                   urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                  userAgentPackageName: 'com.example.app',
+                  userAgentPackageName:
+                      'com.example.pruebas_mapa', // 👈 obligatorio
                 ),
                 MarkerLayer(
                   markers: [

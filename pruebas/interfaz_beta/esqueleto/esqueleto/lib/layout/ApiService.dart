@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = "http://localhost/beta";
+  final String baseUrl = "http://172.20.10.8/beta";
 
   Future<List<dynamic>> getParadasPorRuta(int rutaId) async {
     final response = await http.get(

@@ -5,12 +5,47 @@
 *.iml
 *.class
 *.log
+
+# Secrets — absolutely never commit. Tailnet URL, DB pass, JWT secret live here.
+server/.env
+server/.env.*
+!server/.env.example
+
+# Local-only config that shadows the tailnet domain out of source.
+**/lib/config/api_base.local.dart
+**/.env
+**/.env.local
+
+# SQLite artifacts from local dev
+*.db
+*.sqlite
+*.sqlite3
+
+# Flutter build output + plugin manifests
+/build/
+**/build/
+.flutter-plugins-dependencies
+**/.flutter-plugins-dependencies
+.dart_tool/
+**/.dart_tool/
+
+# Genuinamente no se porque chinga tanto pubspec.lock. Causa inumerables exposiciones
+# de seguridad y se regenera cada que corres flutter pub get o flutter analyze, cosa
+# que _deberias_ hacer de habito.
 pruebas/prueba_bd/pubspec.lock
 pruebas/pruebas_bases/prueba_bd/pubspec.lock
-pruebas/pruebas_bases/prueba_bd/pubspec.lock
-#Genuinamente no se porque chinga tanto pubspec.lock. Causa inumerables exposiciones de seguridad y se regenera
-#cada que corres flutter pub get o flutter analyze, cosa que _deberias_ hacer de habito.
 aplicacion/combis_app/pubspec.lock
 pruebas/pruebas_mapas/pruebas_generador_rutas/pubspec.lock
 pruebas/pruebas_mapas/pruebas_mapa/pubspec.lock
 pruebas/pruebas_bases/prueba_bd/lib/log/db_logger.dart
+
+
+pruebas/**/assets/icon*.png
+pruebas/**/assets/app_icon*.png
+pruebas/**/assets/launcher*.png
+pruebas/prueba_ya_dos/build
+pruebas/prueba_ya_dos/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+pruebas/prueba_ya_dos/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+pruebas/prueba_ya_dos/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+pruebas/prueba_ya_dos/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+pruebas/prueba_ya_dos/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png

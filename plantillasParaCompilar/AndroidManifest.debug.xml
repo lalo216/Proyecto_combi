@@ -1,0 +1,24 @@
+<!--
+  TEMPLATE: AndroidManifest.xml para builds DEBUG (desarrollo local).
+  Destino: android/app/src/debug/AndroidManifest.xml
+  App: CombisChiautempan (mx.combis.combischiautempanrun)
+
+  Este archivo es un OVERLAY — se fusiona con src/main/AndroidManifest.xml al compilar --debug.
+  NO duplicar permisos que ya estén en main. Solo añadir lo que se necesita en dev.
+
+  Contenido típico:
+  - INTERNET (redundante si main ya lo tiene, pero Flutter tooling lo espera aquí para hot-reload).
+  - android:usesCleartextTraffic="true" → permite HTTP sin cifrar durante dev (mechyserver LAN sin TLS).
+  - Para release este flag NO debe existir.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Flutter tooling necesita INTERNET para hot-reload y breakpoints -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Solo en debug: permite HTTP sin cifrar para probar servidor LAN antes de TLS -->
+    <application
+        android:usesCleartextTraffic="true"
+        tools:replace="android:usesCleartextTraffic"
+        xmlns:tools="http://schemas.android.com/tools">
+    </application>
+</manifest>

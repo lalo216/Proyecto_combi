@@ -5,7 +5,7 @@ class Ruta {
   final int id;
   final String nombre;
   final String horario;
-  final int tiempoRecorrido;
+  final int estimatedTime; // El servidor guarda este campo pero el payload simplificado lo llama tiempo_recorrido, así que ambos se aceptan en fromJson
   final String? startPoint;
   final String? endPoint;
 
@@ -13,26 +13,17 @@ class Ruta {
     required this.id,
     required this.nombre,
     this.horario = '',
-    this.tiempoRecorrido = 0,
+    this.estimatedTime = 0,
     this.startPoint,
     this.endPoint,
   });
 
-  // Acepta el shape "reducido" (nombre_ruta/tiempo_recorrido) y el shape
-  // legacy del servidor actual (name/estimated_time). Mientras sync.php no
-  // se actualice al payload simplificado, ambos coexisten — un solo modelo,
-  // sin duplicar.
+  // Acepta nombre_ruta (canonical) y estimated_time o tiempo_recorrido.
   factory Ruta.fromJson(Map<String, dynamic> json) => Ruta(
         id: (json['id'] as num).toInt(),
-        nombre: (json['nombre_ruta'] ??
-                json['nombre'] ??
-                json['name'] ??
-                '') as String,
+        nombre: (json['nombre_ruta'] ?? '') as String,
         horario: (json['horario'] ?? '') as String,
-        tiempoRecorrido: ((json['tiempo_recorrido'] ??
-                json['estimated_time'] ??
-                0) as num)
-            .toInt(),
+        estimatedTime: ((json['estimated_time'] ?? json['tiempo_recorrido'] ?? 0) as num).toInt(),
         startPoint: json['start_point'] as String?,
         endPoint: json['end_point'] as String?,
       );
@@ -60,11 +51,9 @@ class AppState extends ChangeNotifier {
   String? _role;
 
   List<Ruta> _routes = const [];
+  bool _hasSyncedThisSession = false;
   DateTime? _lastSyncAt;
 
-  // Memo de la última ruta dibujada en esta sesión: paradas + polilínea OSRM.
-  // Sólo una ruta a la vez; cuando el usuario abre otra, ésta se reemplaza.
-  // SQLite (rutas_drawn) es el respaldo entre sesiones.
   int? _drawnRouteId;
   List<Map<String, dynamic>>? _drawnParadas;
   List<List<double>>? _drawnPolyline;
@@ -82,27 +71,36 @@ class AppState extends ChangeNotifier {
   String? get userId => _userId;
   String? get userEmail => _userEmail;
   String? get nombre => _nombre;
+  String? get nombreusuario => _nombre;
   String? get token => _token;
   String? get municipio => _municipio;
   String? get role => _role;
   bool get isAdmin => _role == 'admin';
   bool get readOnlyMode => _readOnlyMode;
-  String get saludo => _nombre == null ? 'Hola' : 'Hola, $_nombre';
+  String get saludo => _nombre != null ? '¡Hola, $_nombre!' : 'Hola';
 
   List<Ruta> get routes => List.unmodifiable(_routes);
   DateTime? get lastSyncAt => _lastSyncAt;
+  bool get hasSyncedThisSession => _hasSyncedThisSession;
 
-  bool get canSync {
+  /// TTL: 1 hora desde el último sync exitoso.
+  static const Duration syncTtl = Duration(hours: 1);
+
+  bool get needsSync {
     if (_readOnlyMode) return false;
+    if (!_hasSyncedThisSession) return true;
     if (_lastSyncAt == null) return true;
-    return DateTime.now().difference(_lastSyncAt!) >= const Duration(hours: 1);
+    return DateTime.now().difference(_lastSyncAt!) >= syncTtl;
   }
 
-  Duration? get timeUntilNextSync {
-    if (_lastSyncAt == null) return Duration.zero;
-    final next = _lastSyncAt!.add(const Duration(hours: 1));
-    final now = DateTime.now();
-    return next.isAfter(now) ? next.difference(now) : Duration.zero;
+  /// Tiempo restante antes de que expire el TTL del sync.
+  /// null si ya expiró, si no ha sincronizado, o si está en readOnly.
+  Duration? get remainingtime {
+    if (_readOnlyMode) return null;
+    if (_lastSyncAt == null) return null;
+    final expiry = _lastSyncAt!.add(syncTtl);
+    final remaining = expiry.difference(DateTime.now());
+    return remaining.isNegative ? null : remaining;
   }
 
   void setSession({
@@ -147,8 +145,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Marca sync exitoso sin reemplazar rutas (para "up_to_date").
+  Future<void> stampSync() async {
+    _hasSyncedThisSession = true;
+    _lastSyncAt = DateTime.now();
+    await DatabaseHelper.instance.setLastSyncAt(_lastSyncAt!);
+    notifyListeners();
+  }
+
   Future<void> replaceRoutes(List<Ruta> next) async {
     _routes = List.of(next);
+    _hasSyncedThisSession = true;
     _lastSyncAt = DateTime.now();
     await DatabaseHelper.instance.setLastSyncAt(_lastSyncAt!);
     notifyListeners();

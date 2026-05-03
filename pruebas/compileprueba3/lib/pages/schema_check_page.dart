@@ -17,7 +17,7 @@ class _SchemaCheckPageState extends State<SchemaCheckPage> {
   String? _error;
 
   static const Map<String, List<String>> _expected = {
-    'rutas': ['id', 'nombre_ruta', 'horario', 'tiempo_recorrido', 'start_point', 'end_point'],
+    'rutas': ['id', 'nombre_ruta', 'horario', 'estimated_time', 'start_point', 'end_point'],
     'paradas': ['id', 'route_id', 'name', 'lat', 'lng', 'order'],
     'usuarios': ['id', 'email', 'password', 'nombre_completo', 'municipio', 'role'],
   };

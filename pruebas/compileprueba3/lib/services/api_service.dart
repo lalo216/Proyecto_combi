@@ -58,10 +58,8 @@ class ApiService {
         return const HealthResult(ok: false);
       }
       final body = jsonDecode(r.body) as Map<String, dynamic>;
-      // status puede ser "ok" o "degraded" — degraded = MySQL caído pero
-      // PHP sigue respondiendo. Lo tratamos como no-ok para boot.
       final ok = body['status'] == 'ok';
-      final ver = (body['schema_version'] as num?)?.toInt();
+      final ver = (body['schema_version'] ?? body['version'] as num?)?.toInt();
       return HealthResult(ok: ok, serverSchemaVersion: ver);
     } on SocketException {
       return const HealthResult(ok: false);
@@ -72,12 +70,12 @@ class ApiService {
     }
   }
 
-  Future<SyncResult> sync({String? token}) async {
+  Future<SyncResult> sync({String? token, bool forceFullPayload = false}) async {
     final clientV = ApiBase.localdbversion;
     try {
       final r = await http
           .get(
-            Uri.parse('$_base/sync.php?client_version=$clientV'),
+            Uri.parse('$_base/sync.php?client_version=$clientV${forceFullPayload ? '&force=1' : ''}'),
             headers: token == null ? null : {'Authorization': 'Bearer $token'},
           )
           .timeout(_timeout);
@@ -89,7 +87,7 @@ class ApiService {
 
       final serverV =
           (body['schema_version'] as num?)?.toInt() ?? clientV;
-      if (serverV > clientV) {
+      if (serverV != clientV) {
         throw SchemaMismatchException(
           serverVersion: serverV,
           clientVersion: clientV,

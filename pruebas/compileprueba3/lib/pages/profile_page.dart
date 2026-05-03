@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../state/app_state.dart';
+import '../widgets/sync_indicator.dart';
 import 'crearcuenta_page.dart';
 import 'schema_check_page.dart';
 
@@ -206,6 +207,8 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const SyncIndicator(),
+              const SizedBox(height: 16),
               CircleAvatar(
                 radius: 44,
                 backgroundColor: cs.primaryContainer,

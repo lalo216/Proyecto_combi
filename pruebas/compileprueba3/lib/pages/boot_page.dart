@@ -101,21 +101,22 @@ class _BootPageState extends State<BootPage> {
       debugPrint('boot session: $e');
     }
 
-    if (online && appState.canSync) {
+    if (online && appState.needsSync) {
+      // RAM solo tiene seed o el TTL expiró — pedir payload completo.
       await _setStatus('Sincronizando rutas...');
       try {
-        final result = await api.sync(token: token);
-        debugPrint('boot sync: success, upToDate=${result.upToDate}, count=${result.rutas.length}');
-        if (!result.upToDate) {
-          if (result.rutas.isNotEmpty) {
-            await appState.replaceRoutes(result.rutas);
-          } else {
-            debugPrint('boot sync: server returned empty list despite !upToDate');
-          }
-        }
-        await _setStatus(
-          result.upToDate ? 'Catálogo al día.' : 'Catálogo actualizado.',
+        final result = await api.sync(
+          token: token,
+          forceFullPayload: !appState.hasSyncedThisSession,
         );
+        debugPrint('boot sync: upToDate=${result.upToDate}, count=${result.rutas.length}');
+        if (result.rutas.isNotEmpty) {
+          await appState.replaceRoutes(result.rutas);
+          await _setStatus('Catálogo actualizado.');
+        } else {
+          await appState.stampSync();
+          await _setStatus('Sin cambios en el catálogo.');
+        }
       } on SchemaMismatchException {
         appState.setReadOnlyMode(true);
         await _setStatus('Versión obsoleta — modo solo lectura.');
@@ -125,8 +126,8 @@ class _BootPageState extends State<BootPage> {
         debugPrint('boot sync error: $e');
         await _setStatus('No se pudo sincronizar.');
       }
-    } else {
-      debugPrint('boot sync: skipped (online=$online, canSync=${appState.canSync})');
+    } else if (!online) {
+      await _setStatus('Sin conexión — modo local.');
     }
 
     if (!mounted) return;

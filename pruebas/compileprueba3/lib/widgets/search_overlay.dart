@@ -200,8 +200,8 @@ class _OverviewCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                ruta.tiempoRecorrido > 0
-                    ? '${ruta.tiempoRecorrido} min'
+                ruta.estimatedTime > 0
+                    ? '${ruta.estimatedTime} min'
                     : 'Tiempo por definir',
                 style: theme.textTheme.bodyMedium,
               ),

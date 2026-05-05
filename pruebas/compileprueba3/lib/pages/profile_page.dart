@@ -6,7 +6,6 @@ import '../state/app_state.dart';
 import '../widgets/sync_indicator.dart';
 import 'crearcuenta_page.dart';
 import 'schema_check_page.dart';
-import 'creditos_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -201,18 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final tt = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Perfil'), 
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const CreditosPage()),
-            ),
-            tooltip: 'creditos',
-          ),
-        ],
-        ),
+      appBar: AppBar(title: const Text('Perfil'), centerTitle: false),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),

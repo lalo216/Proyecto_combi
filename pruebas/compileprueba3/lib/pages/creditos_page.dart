@@ -22,10 +22,10 @@ class CreditosPage extends StatelessWidget {
               spacing: 24,
               runSpacing: 16,
               children: [
-                _TeamMemberTile('Lalo', cs, tt),
-                _TeamMemberTile('Gael', cs, tt),
-                _TeamMemberTile('Adriana', cs, tt),
-                _TeamMemberTile('Martin', cs, tt),
+                _teamMemberTile('Lalo', cs, tt),
+                _teamMemberTile('Gael', cs, tt),
+                _teamMemberTile('Adriana', cs, tt),
+                _teamMemberTile('Martin', cs, tt),
               ],
             ),
           ],
@@ -34,7 +34,7 @@ class CreditosPage extends StatelessWidget {
     );
   }
 
-  Widget _TeamMemberTile(String name, ColorScheme cs, TextTheme tt) {
+  Widget _teamMemberTile(String name, ColorScheme cs, TextTheme tt) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(

@@ -11,12 +11,11 @@
   - NO incluir android:usesCleartextTraffic="true" en release — todo tráfico debe ir por HTTPS (Tailscale lane).
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Requerido para: sync.php, check.php, routes.php, favorites.php, login.php, tiles OSM -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
-        android:label="CombisChiautempan"
+        android:label="CombisCuro"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

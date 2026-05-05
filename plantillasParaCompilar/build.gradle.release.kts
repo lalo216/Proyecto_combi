@@ -17,7 +17,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // El Flutter Gradle Plugin DEBE aplicarse después de los plugins Android y Kotlin.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -37,7 +36,7 @@ android {
 
     defaultConfig {
         applicationId = "mx.combis.combischiautempanrun"
-        minSdk = 21   // Android 5.0 — mínimo para sqflite y flutter_map
+        minSdk = 34   // Android 12.0 — mínimo para unos metodos
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

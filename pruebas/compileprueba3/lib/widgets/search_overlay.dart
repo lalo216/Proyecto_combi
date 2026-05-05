@@ -12,8 +12,8 @@ class SearchSurface extends StatefulWidget {
 }
 
 class _SearchSurfaceState extends State<SearchSurface> {
-  final TextEditingController _ctrl = TextEditingController();
-  final FocusNode _focus = FocusNode();
+  final _ctrlBusca = TextEditingController();
+  final  _focus = FocusNode();
   bool _active = false;
   int? _expandedId;
 
@@ -29,7 +29,7 @@ class _SearchSurfaceState extends State<SearchSurface> {
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _ctrlBusca.dispose();
     _focus.dispose();
     super.dispose();
   }
@@ -38,13 +38,13 @@ class _SearchSurfaceState extends State<SearchSurface> {
     _focus.unfocus();
     setState(() {
       _active = false;
-      _ctrl.clear();
+      _ctrlBusca.clear();
       _expandedId = null;
     });
   }
 
   void _onResultTap(AppState appState, Ruta r) {
-    appState.logQuery(_ctrl.text);
+    appState.logQuery(_ctrlBusca.text);
     appState.logRouteOpened(r.id);
     setState(() => _expandedId = _expandedId == r.id ? null : r.id);
   }
@@ -58,7 +58,7 @@ class _SearchSurfaceState extends State<SearchSurface> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final results = _active ? appState.search(_ctrl.text) : const <Ruta>[];
+    final results = _active ? appState.search(_ctrlBusca.text) : const <Ruta>[];
 
     return Stack(
       children: [
@@ -81,7 +81,7 @@ class _SearchSurfaceState extends State<SearchSurface> {
                   borderRadius: BorderRadius.circular(28),
                   color: Theme.of(context).colorScheme.surface,
                   child: TextField(
-                    controller: _ctrl,
+                    controller: _ctrlBusca,
                     focusNode: _focus,
                     onChanged: (_) => setState(() => _expandedId = null),
                     decoration: InputDecoration(

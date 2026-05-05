@@ -16,4 +16,4 @@ Tenemos una cantidad limitada de rutas/tiempo para hacer que la app ofrezca algo
 Creditos:
 
 Cbtis 03, profe luigi.
-Lalo, Gael. Martin y Adriana. Juntos hicimos todo. 
+Lalo, Gael. Martin y Adriana. Juntos hicimos todo

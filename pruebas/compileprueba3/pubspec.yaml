@@ -1,5 +1,5 @@
 name: curo_combis
-description: "Combis Chiautempan — reduction pass."
+description: "Una aplicación móvil para la gestión de combis, que permite a los usuarios reservar viajes, ver rutas y horarios, y más."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -21,7 +21,6 @@ dependencies:
 
   provider: ^6.1.2
 
-  # JWT en reposo. Android: encryptedSharedPreferences.
   flutter_secure_storage: ^9.2.2
 
 dev_dependencies:

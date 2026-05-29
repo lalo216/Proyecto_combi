@@ -50,10 +50,19 @@ class ApiService {
   static const Duration _timeout = Duration(seconds: 8);
   static const String _base = ApiBase.apiurl;
 
+  // Every combiapi request must carry the agreed User-Agent or the server
+  // 403s. `json: true` adds Content-Type; `token` adds Authorization.
+  Map<String, String> _headers({String? token, bool json = false}) => {
+        'User-Agent': ApiBase.clientUa,
+        if (json) 'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
   Future<HealthResult> check() async {
     try {
-      final r =
-          await http.get(Uri.parse('$_base/check.php')).timeout(_timeout);
+      final r = await http
+          .get(Uri.parse('$_base/check.php'), headers: _headers())
+          .timeout(_timeout);
       if (r.statusCode != 200) {
         return const HealthResult(ok: false);
       }
@@ -76,7 +85,7 @@ class ApiService {
       final r = await http
           .get(
             Uri.parse('$_base/sync.php?client_version=$clientV${forceFullPayload ? '&force=1' : ''}'),
-            headers: token == null ? null : {'Authorization': 'Bearer $token'},
+            headers: _headers(token: token),
           )
           .timeout(_timeout);
 
@@ -127,7 +136,7 @@ class ApiService {
   Future<List<dynamic>> getParadasPorRuta(int rutaId) async {
     try {
       final r = await http
-          .get(Uri.parse('$_base/routes.php?id=$rutaId'))
+          .get(Uri.parse('$_base/routes.php?id=$rutaId'), headers: _headers())
           .timeout(_timeout);
       if (r.statusCode != 200) {
         throw ApiException('Paradas falló', statusCode: r.statusCode);
@@ -160,7 +169,7 @@ class ApiService {
       final r = await http
           .post(
             Uri.parse('$_base/registrar.php'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _headers(json: true),
             body: jsonEncode({
               'email': email,
               'password': password,
@@ -197,7 +206,7 @@ class ApiService {
       final r = await http
           .post(
             Uri.parse('$_base/login.php'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _headers(json: true),
             body: jsonEncode({'email': email, 'password': password}),
           )
           .timeout(_timeout);
@@ -224,7 +233,7 @@ class ApiService {
     try {
       final r = await http.get(
         Uri.parse('$_base/schema.php'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: _headers(token: token),
       ).timeout(_timeout);
       if (r.statusCode != 200) {
         throw ApiException('Error al obtener esquema', statusCode: r.statusCode);

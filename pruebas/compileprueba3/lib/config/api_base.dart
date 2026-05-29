@@ -16,4 +16,10 @@ class ApiBase {
     'API_BASE',
     defaultValue: 'https://api.example.invalid/combiapi',
   );
+
+  static const String clientUa = String.fromEnvironment(
+    'CLIENT_UA',
+    defaultValue: 'CombiApi-Flutter/xd',
+  );
+
 }

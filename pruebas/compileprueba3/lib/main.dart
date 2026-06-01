@@ -18,7 +18,7 @@ class CombisApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Combis Chiautempan',
+      title: 'Curo combis',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFB7E4C7),
